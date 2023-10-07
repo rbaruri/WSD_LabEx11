@@ -1,7 +1,6 @@
 import React from 'react';
 import TaskList from './components/Tasklist';
 
-
 function App() {
   return (
     <div className="App">
