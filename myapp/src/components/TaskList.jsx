@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./TaskList.css";
+import "daisyui/dist/full.css"; // Import Daisy UI styles
+import "./TaskList.css"; // Your custom CSS
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
@@ -18,7 +19,6 @@ const TaskList = () => {
       console.error("Error loading tasks from local storage:", error);
     }
   }, []);
-  
 
   const addTask = () => {
     if (newTask.trim() !== "") {
@@ -65,9 +65,9 @@ const TaskList = () => {
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content flex flex-col items-center justify-center">
           <div>
-            <h1>Task List</h1>
+            <h1 className="text-3xl font-bold mb-4">Task List</h1>
 
-            <div className="flex items-center space-x-5">
+            <div className="flex items-center space-x-5 mb-4">
               <input
                 type="text"
                 placeholder="Add a new task"
@@ -76,36 +76,48 @@ const TaskList = () => {
                 onChange={(e) => setNewTask(e.target.value)}
               />
               <button
-                className="btn btn-secondary normal-case text-l"
+                className="btn btn-secondary normal-case text-lg"
                 onClick={addTask}
               >
                 Add
               </button>
             </div>
 
-            <ul>
+            <ul className="space-y-4">
               {tasks.map((task, index) => (
-                <li key={index}>
+                <li key={index} className="flex items-center space-x-2">
                   {editTask === index ? (
-                    <div>
+                    <div className="flex items-center space-x-2">
                       <input
                         type="text"
                         value={editedTask}
                         onChange={handleEditInputChange}
+                        className="input input-bordered input-sm w-full max-w-xs"
                       />
-                      <button onClick={() => updateTask(index, editedTask)}>
+                      <button
+                        className="btn btn-ghost normal-case text-xl"
+                        onClick={() => updateTask(index, editedTask)}
+                      >
                         Save
                       </button>
                     </div>
                   ) : (
-                    <div>
+                    <div className="flex items-center space-x-2">
                       <span>{task}</span>
-                      <button onClick={() => handleEditClick(index)}>
+                      <button
+                        className="btn btn-primary normal-case text-xl"
+                        onClick={() => handleEditClick(index)}
+                      >
                         Edit
                       </button>
                     </div>
                   )}
-                  <button onClick={() => deleteTask(index)}>Delete</button>
+                  <button
+                    className="btn btn-error normal-case text-xl"
+                    onClick={() => deleteTask(index)}
+                  >
+                    Delete
+                  </button>
                 </li>
               ))}
             </ul>
@@ -122,7 +134,7 @@ const TaskList = () => {
               <a>Home</a>
             </li>
             <li>
-              <a>Task</a>
+              <a>Task List</a>
             </li>
           </ul>
         </div>
