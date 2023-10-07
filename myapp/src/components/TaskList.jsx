@@ -27,18 +27,26 @@ const TaskList = () => {
 
       // Update local storage with the new task list
       localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    } else {
+      // Display an error message or prevent the action
+      alert("Task name cannot be empty!");
     }
   };
 
   const updateTask = (index, updatedTask) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index] = updatedTask;
-    setTasks(updatedTasks);
-    setEditTask(null);
-    setEditedTask("");
+    if (editedTask.trim() !== "") {
+      const updatedTasks = [...tasks];
+      updatedTasks[index] = updatedTask;
+      setTasks(updatedTasks);
+      setEditTask(null);
+      setEditedTask("");
 
-    // Update local storage with the updated task list
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+      // Update local storage with the updated task list
+      localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+    } else {
+      // Display an error message or prevent the action
+      alert("Task name cannot be empty!");
+    }
   };
 
   const deleteTask = (index) => {
