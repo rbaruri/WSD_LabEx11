@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from "react";
-import "daisyui/dist/full.css"; // Import Daisy UI styles
-import "./TaskList.css"; // Your custom CSS
 
 const TaskList = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
   const [editTask, setEditTask] = useState(null);
   const [editedTask, setEditedTask] = useState("");
+  const [disabledEditButtons, setDisabledEditButtons] = useState([]);
 
   useEffect(() => {
     try {
@@ -22,7 +21,7 @@ const TaskList = () => {
 
   const addTask = () => {
     if (newTask.trim() !== "") {
-      const updatedTasks = [...tasks, newTask];
+      const updatedTasks = [...tasks, { name: newTask, checked: false }];
       setTasks(updatedTasks);
       setNewTask("");
 
@@ -37,12 +36,37 @@ const TaskList = () => {
     setTasks(updatedTasks);
     setEditTask(null);
     setEditedTask("");
+
+    // Update local storage with the updated task list
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
   };
 
   const deleteTask = (index) => {
     const updatedTasks = [...tasks];
     updatedTasks.splice(index, 1);
     setTasks(updatedTasks);
+
+    // Update local storage with the updated task list
+    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
+  };
+
+  const toggleCheckbox = (index) => {
+    const updatedTasks = [...tasks];
+    updatedTasks[index].checked = !updatedTasks[index].checked;
+    setTasks(updatedTasks);
+
+    // Disable the "Edit" button for the checked task
+    if (updatedTasks[index].checked) {
+      setDisabledEditButtons((prevDisabledButtons) => [
+        ...prevDisabledButtons,
+        index,
+      ]);
+    } else {
+      // Enable the "Edit" button if the user unchecks the task
+      setDisabledEditButtons((prevDisabledButtons) =>
+        prevDisabledButtons.filter((disabledIndex) => disabledIndex !== index)
+      );
+    }
   };
 
   const handleEditInputChange = (event) => {
@@ -50,14 +74,9 @@ const TaskList = () => {
   };
 
   const handleEditClick = (index) => {
-    setEditedTask(tasks[index]);
+    setEditedTask(tasks[index].name); // Use task name
     setEditTask(index);
   };
-
-  // Save tasks to local storage whenever tasks change
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]); // This effect will run whenever tasks change
 
   return (
     <div>
@@ -65,76 +84,146 @@ const TaskList = () => {
         <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
         <div className="drawer-content flex flex-col items-center justify-center">
           <div>
-            <h1 className="text-3xl font-bold mb-4">Task List</h1>
-
-            <div className="flex items-center space-x-5 mb-4">
-              <input
-                type="text"
-                placeholder="Add a new task"
-                value={newTask}
-                className="input input-bordered input-info w-full max-w-xs"
-                onChange={(e) => setNewTask(e.target.value)}
-              />
-              <button
-                className="btn btn-secondary normal-case text-lg"
-                onClick={addTask}
-              >
-                Add
-              </button>
-            </div>
-
-            <ul className="space-y-4">
-              {tasks.map((task, index) => (
-                <li key={index} className="flex items-center space-x-2">
-                  {editTask === index ? (
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        value={editedTask}
-                        onChange={handleEditInputChange}
-                        className="input input-bordered input-sm w-full max-w-xs"
-                      />
-                      <button
-                        className="btn btn-ghost normal-case text-xl"
-                        onClick={() => updateTask(index, editedTask)}
-                      >
-                        Save
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <span>{task}</span>
-                      <button
-                        className="btn btn-primary normal-case text-xl"
-                        onClick={() => handleEditClick(index)}
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  )}
+            <div className="card bg-base-100 shadow-xl max-h-screen">
+              <div className="card-body">
+                <h2 className="card-title">Task List</h2>
+                <div className="divider"></div>
+                <div className="flex items-center space-x-5">
+                  <input
+                    type="text"
+                    placeholder="Add a new task"
+                    value={newTask}
+                    className="input input-bordered input-info w-full max-w-xs"
+                    onChange={(e) => setNewTask(e.target.value)}
+                    key="newTask"
+                  />
                   <button
-                    className="btn btn-error normal-case text-xl"
-                    onClick={() => deleteTask(index)}
+                    className="btn btn-secondary normal-case text-l px-7"
+                    onClick={addTask}
                   >
-                    Delete
+                    Add
                   </button>
-                </li>
-              ))}
-            </ul>
+                </div>
+              </div>
+              <div className="card-actions">
+                <div className="overflow-x-auto" style={{ width: "100%" }}>
+                  <table className="table table-sm table-zebra mx-auto">
+                    <thead className="text-center">
+                      <tr>
+                        <th>Checkbox</th>
+                        <th>Task</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {tasks.map((task, index) => (
+                        <tr
+                          key={index}
+                          className={task.checked ? "bg-success" : ""}
+                        >
+                          <td>
+                            <label>
+                              <input
+                                type="checkbox"
+                                className="checkbox"
+                                checked={task.checked}
+                                onChange={() => toggleCheckbox(index)}
+                                key={`checkbox-${index}`}
+                              />
+                            </label>
+                          </td>
+                          <td className="p-2">
+                            {editTask === index ? (
+                              <div>
+                                <input
+                                  type="text"
+                                  value={editedTask}
+                                  onChange={handleEditInputChange}
+                                  key={`edit-input-${index}`}
+                                  className="input input-bordered input-sm w-full max-w-xs"
+                                />
+                              </div>
+                            ) : (
+                              <span>{task.name}</span>
+                            )}
+                          </td>
+                          <td className="text-center p-2">
+                            {editTask === index ? (
+                              <button
+                                className="btn btn-primary btn-sm mr-2"
+                                onClick={() =>
+                                  updateTask(index, {
+                                    ...tasks[index],
+                                    name: editedTask,
+                                  })
+                                }
+                              >
+                                Save
+                              </button>
+                            ) : (
+                              <div>
+                                <button
+                                  className="btn btn-info btn-sm mr-2"
+                                  onClick={() => handleEditClick(index)}
+                                  disabled={disabledEditButtons.includes(index)}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  className="btn btn-error btn-sm"
+                                  onClick={() => deleteTask(index)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <br />
+            </div>
           </div>
         </div>
-        <div className="drawer-side">
+
+        <div className="drawer-side bg-gray-900 text-white w-64 p-4">
           <label
             htmlFor="my-drawer-2"
             aria-label="close sidebar"
             className="drawer-overlay"
           ></label>
-          <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
-            <li>
-              <a>Home</a>
+          <div className="my-4 mx-auto text-center">
+            <img
+              src="https://i.imgur.com/sETrkfF.png"
+              alt="Logo"
+              className="h-12 w-12 mx-auto mb-2"
+            />
+            <div className="text-lg font-semibold">TaskBloom</div>
+            <hr className="my-2 border-gray-600" />{" "}
+            {/* Divider after app name */}
+          </div>
+          <ul className="menu mt-8">
+            <li className="text-base mb-4">
+              <a className="block text-gray-300 hover:text-white">Profile</a>
             </li>
-            <li>
-              <a>Task List</a>
+            <li className="text-base mb-4">
+              <a className="block text-gray-300 hover:text-white">Progress</a>
+            </li>
+            <li className="text-base mb-4">
+              <a className="block text-gray-300 hover:text-white">
+                Upgrade (PRO)⭐
+              </a>
+            </li>
+            <hr className="my-2 border-gray-600" />
+            <li className="text-base">
+              <a className="block text-gray-300 hover:text-white">Settings</a>
+            </li>
+            {/* Divider before "Settings" */}
+            <li className="text-base">
+              <a className="block text-gray-300 hover:text-white">Logout</a>
             </li>
           </ul>
         </div>
